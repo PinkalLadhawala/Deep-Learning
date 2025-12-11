@@ -1,0 +1,455 @@
+{
+  "name": "AI Learning Tutor Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        1824
+      ],
+      "id": "aca4ed28-8d1d-4b32-92f1-b569a50a6a0b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Sntj_ksenu_psGeMG3oDdCntwfEt1WFYe3tWdytSyt8",
+          "mode": "list",
+          "cachedResultName": "Grade 6 Tutor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Sntj_ksenu_psGeMG3oDdCntwfEt1WFYe3tWdytSyt8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1141934727,
+          "mode": "list",
+          "cachedResultName": "Math",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Sntj_ksenu_psGeMG3oDdCntwfEt1WFYe3tWdytSyt8/edit#gid=1141934727"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -448,
+        1824
+      ],
+      "id": "cad50f55-4ce9-42b6-b1c2-c1c865e6f1ac",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZO1rPE6Lfp4Btve2",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        1952
+      ],
+      "id": "6dd66596-7d3a-4b2a-aa2b-14997c740402",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "yUyp1BxLuKMBDVLQ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Topic_no\":1,\n  \"Que_no\":1 ,\n  \"category\": \"Mathematics\",\n  \"sub_topic\": \"Fractions\",\n  \"question\": \"What is 1/2 + 1/4?\",\n  \"answers\": [\n    \"Option A: 1/4\",\n    \"Option B: 3/4\",\n    \"Option C: 1/2\",\n    \"Option D: 2/4\"\n  ],\n  \"correct_answer\": \"Option B: 3/4\"\n\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        2112
+      ],
+      "id": "1b3b9d5d-24af-4509-9e56-f77548dfc4a5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Get row(s) in sheet').item.json.row_number }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        2032
+      ],
+      "id": "30494ca5-28e1-4605-90dc-73792d72fe3c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        2128
+      ],
+      "id": "82697cf4-d9cc-491e-8aa4-6798e5304b74",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "gcnXdO0tIqzrlQKu",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+18444936752",
+        "to": "whatsapp:+919974591263",
+        "toWhatsapp": true,
+        "message": "={{ $json['Question #'] }}:{{ $json.Question }}\n\nA) {{ $json['Option 1 '] }}\nB) {{ $json['Option 2'] }}\nC) {{ $json['Option 3'] }}\nD) {{ $json['Option 4'] }}\n\nSend Reaply As : A/B/C/D ",
+        "options": {}
+      },
+      "id": "ee40de99-c0d8-443e-b0d2-2d3b4f7d4d66",
+      "name": "Ask Question",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        288,
+        1824
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "QxgKS8TX9x5EO47X",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=hi, you are a Tutor Assistant. you have to generate 10 mcq type of problems for given topic. you need to choose a next topic each time.\nthe topic should be given in form of Topic category and sub-topic like \nTopic Category :  {{ $json[\"Topic Category\"] }}\nsub-Topic : {{ $json['Sub-topic'] }}\n\nmake sure you generate mcq based on Topic category and sub-Topic with sequence number.\n\nUser is in grade 6. choose a problem considering their level. you can go to higher level based on their performance.\nwhile ask question, make sure you directly ask questions only. no extra lines.\nmake sure user is always stay in interest,don;t miss to initiate them and say nice words for each try so that they can continue on learning path in a fun way.\nplease choose questions considering kentucky iready examination question type and format.\nMake sure that it should look like human created and initiated. Try to give twisted question as well.\nPLEASE CHECK ON ANSWER BEFORE YOU ASK.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -256,
+        1824
+      ],
+      "id": "2b1b3f97-4578-4466-8da9-5b1bda58bc7b",
+      "name": "Tutor",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Sntj_ksenu_psGeMG3oDdCntwfEt1WFYe3tWdytSyt8",
+          "mode": "list",
+          "cachedResultName": "Grade 6 Tutor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Sntj_ksenu_psGeMG3oDdCntwfEt1WFYe3tWdytSyt8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1141934727,
+          "mode": "list",
+          "cachedResultName": "Math",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Sntj_ksenu_psGeMG3oDdCntwfEt1WFYe3tWdytSyt8/edit#gid=1141934727"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Question": "={{ $json.output.question }}",
+            "Option 1 ": "={{ $json.output.answers[0] }}",
+            "Option 2": "={{ $json.output.answers[1] }}",
+            "Option 3": "={{ $json.output.answers[2] }}",
+            "Answer": "={{ $json.output.correct_answer }}",
+            "Option 4": "={{ $json.output.answers[3] }}",
+            "#": "={{ $json.output.Que_no }}",
+            "Topic Category": "={{ $json.output.category }}",
+            "Sub-topic": "={{ $json.output.sub_topic }}",
+            "Question #": "={{ $json.output.Topic_no }}"
+          },
+          "matchingColumns": [
+            "#"
+          ],
+          "schema": [
+            {
+              "id": "#",
+              "displayName": "#",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Topic Category",
+              "displayName": "Topic Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sub-topic",
+              "displayName": "Sub-topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Description / Learning Objective",
+              "displayName": "Description / Learning Objective",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Question #",
+              "displayName": "Question #",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Option 1 ",
+              "displayName": "Option 1 ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Option 2",
+              "displayName": "Option 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Option 3",
+              "displayName": "Option 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Option 4",
+              "displayName": "Option 4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Answer",
+              "displayName": "Answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "locationDefine": {
+            "values": {
+              "headerRow": 2,
+              "firstDataRow": 3
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        112,
+        1824
+      ],
+      "id": "5f8a4617-f439-4092-995e-26eee86e373f",
+      "name": "Add Question Answer to sheet",
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZO1rPE6Lfp4Btve2",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Tutor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tutor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Tutor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Tutor",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tutor",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Tutor": {
+      "main": [
+        [
+          {
+            "node": "Add Question Answer to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Question Answer to sheet": {
+      "main": [
+        [
+          {
+            "node": "Ask Question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f792c240-63c3-4b02-a0ea-329d18e0da98",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ea3287acb5a3b104f07fe1131da8fb087450fb26d4b46876cf821c83d4a3e3ef"
+  },
+  "id": "lVB2tQiq7ZxC2xp0",
+  "tags": [
+    {
+      "updatedAt": "2025-12-09T22:30:17.003Z",
+      "createdAt": "2025-12-09T22:30:17.003Z",
+      "id": "gJndkeU9uvr1RiHH",
+      "name": "Grade :6 Math & English"
+    }
+  ]
+}

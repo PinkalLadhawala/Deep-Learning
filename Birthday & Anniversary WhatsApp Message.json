@@ -1,0 +1,172 @@
+{
+  "name": "Birthday & Anniversary WhatsApp Message",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "27a486bf-3aa2-4138-af18-92f9e00bec11",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -384,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Nq2N9ToVEn5oPEf5_SUJVgvpy3ZhCfnR2WtAmFgrqyo",
+          "mode": "list",
+          "cachedResultName": "Birthday Reminders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nq2N9ToVEn5oPEf5_SUJVgvpy3ZhCfnR2WtAmFgrqyo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Birthday",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nq2N9ToVEn5oPEf5_SUJVgvpy3ZhCfnR2WtAmFgrqyo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "befe6db7-2063-4ed9-bac3-bcbcbadd1768",
+      "name": "Read Birthdays Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        -176,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZO1rPE6Lfp4Btve2",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.Date.split(\"/\")[0].padStart(2, \"0\") + \"/\" + $json.Date.split(\"/\")[1].padStart(2, \"0\") }}",
+              "value2": "={{ DateTime.now().toFormat('MM/dd').trim()}}"
+            }
+          ]
+        }
+      },
+      "id": "051d8aa2-e43e-4247-85bb-bd83f9c6c75e",
+      "name": "Filter Today's Events",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        32,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Determine if this is a birthday or anniversary\nconst eventType = $input.first().json.Event \n  //=== 'Birthday' ? 'Birthday' : 'Anniversary';\n\n// Format the message\nconst name = $input.first().json.Name;\nconst message = eventType === 'Birthday' \n  ? `🎉 Happy Birthday ${name}! 🎂 Wishing you a wonderful day filled with joy and happiness!`\n  : `💐 Happy Anniversary ${name}! 💑 Wishing you many more years of love and happiness together!`;\n\n// Format phone number (ensure it has country code)\nlet phone = $input.item.json['Phone #'].toString().replace(/\\D/g, '');\n\n// Handle Indian phone numbers (10 digits starting with 6-9)\nif (phone.length === 10 && /^[6-9]/.test(phone)) {\n  phone = '91' + phone; // Add India country code\n}\n// Handle US phone numbers (10 digits starting with 2-9)\nelse if (phone.length === 10) {\n  phone = '1' + phone; // Add US country code\n}\n// If already has country code, use as is\n\nreturn {\n  phone: `whatsapp:+${phone}`,\n  message: message,\n  name: name,\n  eventType: eventType\n};"
+      },
+      "id": "9e67704c-22e8-49b7-8182-01aa7bbe0483",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "from": "+18444936752",
+        "to": "={{ $json.phone }}",
+        "toWhatsapp": true,
+        "message": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "860e58ce-cb66-4d7d-930e-4bfe5c218450",
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        448,
+        240
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "QxgKS8TX9x5EO47X",
+          "name": "Twilio account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Birthdays Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Birthdays Sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter Today's Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Today's Events": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f9aae83e-9d6b-400c-b78f-8ad2e6580ead",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ea3287acb5a3b104f07fe1131da8fb087450fb26d4b46876cf821c83d4a3e3ef"
+  },
+  "id": "TeMDjxxkpt8ix1ON",
+  "tags": []
+}

@@ -1,0 +1,251 @@
+{
+  "name": "workflow with JSON",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "4f50a4c4-7cd8-4b74-b465-a917b8c37317",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.zippopotam.us/us/{{ $json.zipcode }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 10,
+              "batchInterval": 5000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "c8ca1ff9-3e9e-4c1a-87e7-281e4132c27e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1zw6dKk3p5muuGlX5ce3NmTVlGExPaUYMw2_wNHnCclw",
+          "mode": "list",
+          "cachedResultName": "Potential Customers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zw6dKk3p5muuGlX5ce3NmTVlGExPaUYMw2_wNHnCclw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zw6dKk3p5muuGlX5ce3NmTVlGExPaUYMw2_wNHnCclw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -192,
+        0
+      ],
+      "id": "e13cdf30-4839-4bc6-b846-201e86c2b4db",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZO1rPE6Lfp4Btve2",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1zw6dKk3p5muuGlX5ce3NmTVlGExPaUYMw2_wNHnCclw",
+          "mode": "list",
+          "cachedResultName": "Potential Customers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zw6dKk3p5muuGlX5ce3NmTVlGExPaUYMw2_wNHnCclw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zw6dKk3p5muuGlX5ce3NmTVlGExPaUYMw2_wNHnCclw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $('Get row(s) in sheet').item.json.ID }}",
+            "NAME": "={{ $('Get row(s) in sheet').item.json.NAME }}",
+            "PHONE NUMBER": "={{ $('Get row(s) in sheet').item.json['PHONE NUMBER'] }}",
+            "BUDGET": "={{ $('Get row(s) in sheet').item.json.BUDGET }}",
+            "zipcode": "={{ $('Get row(s) in sheet').item.json.zipcode }}",
+            "Age": "={{ $('Get row(s) in sheet').item.json.Age }}",
+            "Place Name": "={{ $json.places[0]['place name'] }}",
+            "State": "={{ $json.places[0].state }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NAME",
+              "displayName": "NAME",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PHONE NUMBER",
+              "displayName": "PHONE NUMBER",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "BUDGET",
+              "displayName": "BUDGET",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "zipcode",
+              "displayName": "zipcode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Place Name",
+              "displayName": "Place Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        192,
+        0
+      ],
+      "id": "7272032e-428e-4e11-ae9b-48ea5b9f0c86",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZO1rPE6Lfp4Btve2",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2f7f252e-8815-4a65-b6d1-767959dcb9aa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ea3287acb5a3b104f07fe1131da8fb087450fb26d4b46876cf821c83d4a3e3ef"
+  },
+  "id": "lV9EimAaHIjMdhY0",
+  "tags": [
+    {
+      "name": "workflow_2",
+      "id": "7cNlO7Q0P0PNAsSx",
+      "updatedAt": "2025-12-04T17:16:42.712Z",
+      "createdAt": "2025-12-04T17:16:42.712Z"
+    }
+  ]
+}
